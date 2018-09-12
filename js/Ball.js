@@ -1,0 +1,46 @@
+//球对象
+var Ball=function()
+{
+  var o={
+    x:225,
+    y:285,
+    color:'red',
+    fired:false,
+    speedX:5,
+    speedY:-5,
+    fire:function()
+    {
+      this.fired=true
+    },
+    move:function()
+    {
+      if(this.fired)
+      {
+        if(o.x-10<0||o.x+10>400){
+          o.speedX=-o.speedX
+        }
+        if(o.y-10<0||o.y+10>400)
+        {
+          o.speedY=-o.speedY
+        }
+        o.x+=o.speedX
+        o.y+=o.speedY
+      }
+    },
+    moveleft:function()
+    {
+      if(!this.fired&&this.x-75>=10)
+      {
+        this.x-=10;
+      }
+    },
+    moveright:function()
+    {
+      if(!this.fired&&this.x+75<=400)
+      {
+        this.x+=10;
+      }
+    }
+  }
+  return o;
+}

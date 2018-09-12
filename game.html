@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title> blockbreak</title>
+<style media="screen">
+canvas{
+  border: 1px black solid;
+}
+</style>
+<script src='js\Paddle.js'></script>
+<script src='js\Ball.js'></script>
+<script src='js\blockgame.js'></script>
+<script src='js\Break.js'></script>
+<script src='js\level.js'></script>
+</head>
+<body>
+  <canvas id="id-canvas" width="400" height="400"></canvas>
+<script>
+
+//加载层数
+var loadlevel=function(game)
+{
+  var n=game.lv;
+  var level=levels[n];
+  var block=[];
+  for(var i=0;i<level.length;i++)
+  {
+    var b=Break();
+    b.x=level[i][0]
+    b.y=level[i][1]
+    block.push(b)
+  }
+  console.log(block);
+  return block;
+}
+//主函数
+var __main=function(n)
+{
+  var game=new blockgame()
+  game.lv=n;
+  game.ctx.clearRect(0,0,400,400)
+  var block=new Paddle();
+  var ball=new Ball();
+  //砖块数组
+  var bks=loadlevel(game)
+  //覆盖Paddle的draw
+  block.draw=function(){
+    game.ctx.save()
+    game.ctx.fillStyle=block.color
+    game.ctx.fillRect(block.x,block.y,150,30)
+    game.ctx.restore();
+  }
+  ball.draw=function(){
+    game.ctx.restore();
+    game.ctx.save()
+    game.ctx.beginPath()
+    game.ctx.fillStyle=ball.color
+    game.ctx.arc(ball.x,ball.y,10,0,Math.PI*2,true)
+    game.ctx.fill();
+    game.ctx.closePath()
+    game.ctx.restore();
+  }
+  game.registerAction('a',function(){block.moveleft();ball.moveleft()})
+  game.registerAction('d',function(){block.moveright();ball.moveright()})
+  //game.registerAction('f',function(){ball.fire()})
+  window.addEventListener('click',function(event){
+    ball.fire()
+  })
+  window.addEventListener('keydown',function(event){
+    if(event.key=='r'){
+      game.ctx.clearRect(0,0,400,400)
+      delete game,block,ball,bks
+      game.stop();
+      __main(0);
+    }
+  })
+
+  //覆盖game中更新函数
+  game.update=function(){
+    ball.move()
+    if(block.onrush(ball))
+    {
+      ball.speedY=-ball.speedY
+    }
+    for(var i=0;i<bks.length;i++)
+    {
+      var bk=bks[i]
+      if(bk.turn)
+      {
+        if(bk.rush(ball))
+        {
+          bk.alive=false;
+          ball.speedY=-ball.speedY
+          bk.turn=false;
+          game.score+=10;
+        }
+      }
+    }
+
+  }
+  game.draw=function(){
+    // var img=new Image()
+    // img.src='background.png'
+    // game.ctx.clearRect(0,0,400,400)
+    // game.ctx.drawImage(img,0,0,400,300,0,0,400,400)
+    game.drawbackground();
+    if(ball.y+10>=400)
+    {
+      game.ctx.save()
+      game.ctx.strokeStyle="red"
+      game.ctx.font = "50px serif";
+      game.ctx.strokeText("GAME OVER", 80, 200);
+      game.ctx.font="20px serif";
+      game.ctx.strokeText("click 'R' to resart", 100, 230);
+      game.ctx.restore()
+      game.stop();
+    }
+
+    for(var i=0;i<bks.length;i++)
+    {
+      var bk=bks[i]
+      if(bk.alive)
+      {
+        game.drawbreak(bk)
+      }
+
+    }
+    if(game.score==bks.length*10)
+    {
+      if(n!=levels.length-1)
+      {
+        game.stop();
+        n=n+1;
+        __main(n);
+      }
+      else {
+        game.ctx.save()
+        game.ctx.fillStyle="red"
+        game.ctx.font = "40px serif";
+        game.ctx.fillText("Congratulation!", 50 , 200);
+        game.ctx.font="20px serif";
+        game.ctx.fillText("click 'R' to resart", 100, 230);
+        game.ctx.restore()
+        game.stop();
+      }
+
+    }
+        game.ctx.save()
+        game.ctx.fillStyle="red"
+       game.ctx.font='20px serif'
+       game.ctx.fillText("SCORE:"+game.score,10,390)
+       game.ctx.restore();
+       game.ctx.save()
+       game.ctx.font='30px serif'
+
+       game.ctx.fillStyle="red"
+       game.ctx.fillText("Level "+(game.lv+1),10,30)
+       game.ctx.restore();
+        block.draw()
+        ball.draw()
+  }
+
+
+}
+
+__main(0);
+
+</script>
+</body>
+</html>
